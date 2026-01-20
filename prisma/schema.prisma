@@ -1,0 +1,78 @@
+// schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Normalized Geography
+model District {
+  id        String   @id @default(uuid())
+  name      String
+  state     String
+  pincode   String   @unique
+  
+  enrolments EnrolmentLog[]
+  anomalies  AnomalyEvent[]
+  
+  @@index([state, name])
+}
+
+// 2. Daily Aggregates
+model EnrolmentLog {
+  id              String   @id @default(uuid())
+  date            DateTime
+  districtId      String
+  
+  // Enrolment Counts
+  count_0_5       Int      @default(0)
+  count_5_17      Int      @default(0)
+  count_18_plus   Int      @default(0)
+  
+  // Biometric Update Counts
+  bio_update_child Int     @default(0)
+  bio_update_adult Int     @default(0)
+  
+  district        District @relation(fields: [districtId], references: [id])
+
+  @@index([date])
+  @@unique([districtId, date])
+}
+
+// 3. Anomaly Registry
+model AnomalyEvent {
+  id          String   @id @default(uuid())
+  detectedAt  DateTime @default(now())
+  dateOfEvent DateTime
+  districtId  String
+  
+  type        AnomalyType
+  severity    Severity
+  zScore      Float?
+  status      Status      @default(OPEN)
+  
+  district    District @relation(fields: [districtId], references: [id])
+}
+
+enum AnomalyType {
+  GHOST_VILLAGE
+  MBU_CLIFF
+  DIVERGENCE
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Status {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+}
