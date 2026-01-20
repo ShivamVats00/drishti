@@ -19,14 +19,14 @@ def generate_synthetic_data(days=60, districts=5):
     
     for district, pincode in zip(district_names, pincodes):
         for date in dates:
-            # Normal usage
+            
             age_0_5 = np.random.poisson(10)
             age_5_17 = np.random.poisson(15)
-            age_18_plus = np.random.normal(5, 2) # Low adult enrolment usually
+            age_18_plus = np.random.normal(5, 2)
             
-            # Inject "Ghost Village" Anomaly for District_1 on last 3 days
+
             if district == "District_1" and date in dates[-3:]:
-                 age_18_plus += 500 # Massive spike
+                 age_18_plus += 500 
             
             enrolment_data.append({
                 "date": date,
@@ -38,12 +38,11 @@ def generate_synthetic_data(days=60, districts=5):
                 "age_18_greater": max(0, int(age_18_plus))
             })
 
-            # Biometric Data
             bio_5_17 = np.random.normal(50, 5)
             
-            # Inject "MBU Cliff" for District_2
+            
             if district == "District_2" and date in dates[-5:]:
-                bio_5_17 = 5 # Huge drop
+                bio_5_17 = 5 
             
             biometric_data.append({
                 "date": date,
